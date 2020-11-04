@@ -1,6 +1,6 @@
 # Virtual Tourist
 
-This is the 5th project in the Udacity iOS Developer nanodegree. It combines UI elements with API interaction by allowing Udacity students to post a location on a map using a fictive name and to view locations other Udacity students (with fictive names) have posted.
+This is the 5th project in the Udacity iOS Developer nanodegree. It focuses on persisting data to the device. In this app, the user can navigate a map, drop pins, and view pictures from that geographical location.
 
 ## Installation
 Clone the github repository and open the project in XCode (It was written with XCode 12.0.1).
