@@ -37,6 +37,20 @@ class TravelLocationsMapVC: UIViewController
 //                newPin.longitude = pressedLocation.coordinate.longitude
 //                try? dataController.viewContext.save()
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        //set map view on PhotoAlbumVC to same region/center as current map
+        if let vc = segue.destination as? PhotoAlbumVC
+        {
+            vc.region = mapView.region
+            
+//            if let indexPath = tableView.indexPathForSelectedRow {
+//                vc.notebook = fetchedResultsController.object(at: indexPath)
+//                vc.dataController = dataController
+//            }
+        }
+    }
 
 
 }

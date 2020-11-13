@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8215DB48255F1CCF00929E61 /* PhotoAlbumVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8215DB47255F1CCF00929E61 /* PhotoAlbumVC.swift */; };
 		829126DB25531D2E00C4808E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829126DA25531D2E00C4808E /* AppDelegate.swift */; };
 		829126DD25531D2E00C4808E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829126DC25531D2E00C4808E /* SceneDelegate.swift */; };
 		829126DF25531D2E00C4808E /* TravelLocationsMapVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829126DE25531D2E00C4808E /* TravelLocationsMapVC.swift */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8215DB47255F1CCF00929E61 /* PhotoAlbumVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAlbumVC.swift; sourceTree = "<group>"; };
 		829126D725531D2E00C4808E /* VirtualTourist-UdacityProject5.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "VirtualTourist-UdacityProject5.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		829126DA25531D2E00C4808E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		829126DC25531D2E00C4808E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 			children = (
 				829126F62559CA4E00C4808E /* Extensions */,
 				829126DE25531D2E00C4808E /* TravelLocationsMapVC.swift */,
+				8215DB47255F1CCF00929E61 /* PhotoAlbumVC.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -178,6 +181,7 @@
 				829126F82559CA5F00C4808E /* MapExtension.swift in Sources */,
 				829126DF25531D2E00C4808E /* TravelLocationsMapVC.swift in Sources */,
 				829126DB25531D2E00C4808E /* AppDelegate.swift in Sources */,
+				8215DB48255F1CCF00929E61 /* PhotoAlbumVC.swift in Sources */,
 				829126DD25531D2E00C4808E /* SceneDelegate.swift in Sources */,
 				829126F42558E87300C4808E /* FlickrClient.swift in Sources */,
 			);
