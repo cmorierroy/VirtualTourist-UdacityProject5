@@ -7,11 +7,15 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class TravelLocationsMapVC: UIViewController
 {
     @IBOutlet weak var mapView: MKMapView!
     
+    var fetchedResultsController:NSFetchedResultsController<Pin>!
+    
+    // MARK: LifeCycle
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -20,22 +24,78 @@ class TravelLocationsMapVC: UIViewController
         let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(mapTapped(tapGesture:)))
         
         mapView.addGestureRecognizer(gestureRecognizer)
+        
+        //get pins from core data
+        setupFetchedResultsController();
+           
+        //setup pins on map
+        loadPins()
     }
+    
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        super.viewWillDisappear(animated)
+        try? AppDelegate.dataController.viewContext.save()
+    }
+    
     
     @objc func mapTapped(tapGesture:UITapGestureRecognizer)
     {
         //convert tap to map coordinates
         let tappedLoc = tapGesture.location(in: mapView)
-        let mapCoordinates = mapView.convert(tappedLoc, toCoordinateFrom: mapView)
+        let pinCoordinates = mapView.convert(tappedLoc, toCoordinateFrom: mapView)
         
+        //store pin
+        let newPin = Pin(context: AppDelegate.dataController.viewContext)
+        newPin.latitude = pinCoordinates.latitude
+        newPin.longitude = pinCoordinates.longitude
+        try? AppDelegate.dataController.viewContext.save()
+        
+        //add pin to map
+        addPin(newPin)
+    }
+    
+    fileprivate func setupFetchedResultsController()
+    {
+        let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: AppDelegate.dataController.viewContext, sectionNameKeyPath: nil, cacheName: "pins")
+        
+        do
+        {
+            try fetchedResultsController.performFetch()
+        }
+        catch
+        {
+            fatalError("The fetch could not be performed: \(error.localizedDescription)")
+        }
+    }
+    
+    func addPin(_ pin:Pin)
+    {
         let newPin = MKPointAnnotation()
-        newPin.coordinate = mapCoordinates
+        newPin.coordinate.latitude = pin.latitude
+        newPin.coordinate.longitude = pin.longitude
         mapView.addAnnotation(newPin)
+    }
+    
+    func loadPins()
+    {
+        if let section = fetchedResultsController.sections?[0]
+        {
+            var indexPath:IndexPath
+            
+            for index in 0 ..< section.numberOfObjects
+            {
+                indexPath = IndexPath(row: index, section: 0)
+                let pin = fetchedResultsController.object(at: indexPath)
                 
-//                let newPin = Pin(context: dataController.viewContext)
-//                newPin.latitude = pressedLocation.coordinate.latitude
-//                newPin.longitude = pressedLocation.coordinate.longitude
-//                try? dataController.viewContext.save()
+                addPin(pin)
+            }
+        }
+        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
@@ -44,14 +104,6 @@ class TravelLocationsMapVC: UIViewController
         if let vc = segue.destination as? PhotoAlbumVC
         {
             vc.region = mapView.region
-            
-//            if let indexPath = tableView.indexPathForSelectedRow {
-//                vc.notebook = fetchedResultsController.object(at: indexPath)
-//                vc.dataController = dataController
-//            }
         }
     }
-
-
 }
-
