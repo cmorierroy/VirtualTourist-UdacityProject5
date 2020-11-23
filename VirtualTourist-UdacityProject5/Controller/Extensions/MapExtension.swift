@@ -27,17 +27,9 @@ extension TravelLocationsMapVC : MKMapViewDelegate
 //    }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView)
-    {
-        //center on pin when it is selected
-        if let coordinate = view.annotation?.coordinate
-        {
-            let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 4000, longitudinalMeters: 4000)
-            mapView.setRegion(region, animated: false)
-
-        }
-        
+    {        
         //load album view
-        performSegue(withIdentifier: "pinTapped", sender: nil)
+        performSegue(withIdentifier: "pinTapped", sender: view.annotation?.coordinate)
     }
     
     

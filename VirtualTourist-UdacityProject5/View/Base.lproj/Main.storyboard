@@ -51,7 +51,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q9b-zR-ZT0">
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q9b-zR-ZT0">
                                 <rect key="frame" x="0.0" y="832" width="414" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="LNq-iv-bDs"/>
@@ -79,7 +79,7 @@
                                     <constraint firstAttribute="height" constant="250" id="KoU-Bb-bN2"/>
                                 </constraints>
                             </mapView>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="vPW-xb-h9d">
+                            <collectionView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleAspectFit" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="vPW-xb-h9d">
                                 <rect key="frame" x="0.0" y="339" width="414" height="493"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="KDx-Kt-SW8">
@@ -89,15 +89,33 @@
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
                                 <cells>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="ffW-E8-iqQ">
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cell" id="ffW-E8-iqQ" customClass="CustomCell" customModule="VirtualTourist_UdacityProject5" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="0.0" width="128" height="128"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="dOu-fV-a1f">
                                             <rect key="frame" x="0.0" y="0.0" width="128" height="128"/>
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="KmW-TW-fVB">
+                                                    <rect key="frame" x="0.0" y="0.0" width="128" height="128"/>
+                                                </imageView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="bottom" secondItem="KmW-TW-fVB" secondAttribute="bottom" id="Wqp-vD-UIM"/>
+                                                <constraint firstAttribute="trailing" secondItem="KmW-TW-fVB" secondAttribute="trailing" id="XmY-Rb-bUa"/>
+                                                <constraint firstItem="KmW-TW-fVB" firstAttribute="top" secondItem="dOu-fV-a1f" secondAttribute="top" id="bpZ-bA-ggo"/>
+                                                <constraint firstItem="KmW-TW-fVB" firstAttribute="leading" secondItem="dOu-fV-a1f" secondAttribute="leading" id="x6i-Ah-omR"/>
+                                            </constraints>
                                         </collectionViewCellContentView>
+                                        <connections>
+                                            <outlet property="imageView" destination="KmW-TW-fVB" id="RnP-c2-4e1"/>
+                                        </connections>
                                     </collectionViewCell>
                                 </cells>
+                                <connections>
+                                    <outlet property="dataSource" destination="aNc-It-DT0" id="XN9-aD-aio"/>
+                                    <outlet property="delegate" destination="aNc-It-DT0" id="7bN-iZ-26z"/>
+                                </connections>
                             </collectionView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="InK-GZ-ejG"/>
@@ -121,6 +139,8 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="collectionView" destination="vPW-xb-h9d" id="cl2-5A-djz"/>
+                        <outlet property="flowLayout" destination="KDx-Kt-SW8" id="2ic-75-HL3"/>
                         <outlet property="mapView" destination="WsH-ec-vXY" id="LE0-gZ-Kmx"/>
                         <outlet property="newCollectionButton" destination="Q9b-zR-ZT0" id="Xak-hG-IXg"/>
                     </connections>

@@ -14,6 +14,7 @@ class TravelLocationsMapVC: UIViewController
     @IBOutlet weak var mapView: MKMapView!
     
     var fetchedResultsController:NSFetchedResultsController<Pin>!
+    var pins:[Pin] = []
     
     // MARK: LifeCycle
     override func viewDidLoad()
@@ -21,7 +22,7 @@ class TravelLocationsMapVC: UIViewController
         super.viewDidLoad()
 
         //add gesture recognizer
-        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(mapTapped(tapGesture:)))
+        let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(mapTapped(tapGesture:)))
         
         mapView.addGestureRecognizer(gestureRecognizer)
         
@@ -39,7 +40,7 @@ class TravelLocationsMapVC: UIViewController
     }
     
     
-    @objc func mapTapped(tapGesture:UITapGestureRecognizer)
+    @objc func mapTapped(tapGesture:UILongPressGestureRecognizer)
     {
         //convert tap to map coordinates
         let tappedLoc = tapGesture.location(in: mapView)
@@ -50,6 +51,8 @@ class TravelLocationsMapVC: UIViewController
         newPin.latitude = pinCoordinates.latitude
         newPin.longitude = pinCoordinates.longitude
         try? AppDelegate.dataController.viewContext.save()
+        
+        updateFetchedResultsController()
         
         //add pin to map
         addPin(newPin)
@@ -63,9 +66,22 @@ class TravelLocationsMapVC: UIViewController
         
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: AppDelegate.dataController.viewContext, sectionNameKeyPath: nil, cacheName: "pins")
         
+        updateFetchedResultsController()
+    }
+    
+    func updateFetchedResultsController()
+    {
         do
         {
             try fetchedResultsController.performFetch()
+            
+            //update VC's pin collection
+            if let pins = fetchedResultsController.fetchedObjects
+            {
+                self.pins = pins
+            }
+            
+            print("Updated Fetched Results Controller")
         }
         catch
         {
@@ -79,6 +95,20 @@ class TravelLocationsMapVC: UIViewController
         newPin.coordinate.latitude = pin.latitude
         newPin.coordinate.longitude = pin.longitude
         mapView.addAnnotation(newPin)
+    }
+    
+    func getPinByLocation(_ latitude: Double, _ longitude:Double) -> Pin
+    {
+        for pin in pins
+        {
+            if(pin.latitude == latitude && pin.longitude == longitude)
+            {
+                return pin
+            }
+        }
+        
+        print("Pin not found!")
+        return Pin()
     }
     
     func loadPins()
@@ -103,7 +133,15 @@ class TravelLocationsMapVC: UIViewController
         //set map view on PhotoAlbumVC to same region/center as current map
         if let vc = segue.destination as? PhotoAlbumVC
         {
-            vc.region = mapView.region
+            if let pinCoord = sender as? CLLocationCoordinate2D
+            {
+                //give the photo album view controller a region centered on the tapped pin
+                let region = MKCoordinateRegion(center: pinCoord, latitudinalMeters: 4000, longitudinalMeters: 4000)
+                vc.region = region
+                
+                //get the core data pin object that corresponds to tapped pin (needed to access attached pictures)
+                vc.pin = getPinByLocation(pinCoord.latitude, pinCoord.longitude)
+            }
         }
     }
 }
