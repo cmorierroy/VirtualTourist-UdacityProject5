@@ -41,18 +41,26 @@ class DataController
             {
                 fatalError(error!.localizedDescription)
             }
-            self.autoSaveViewContext()
+//            self.autoSaveViewContext()
             self.configureContexts()
             completion?()
         }
     }
+    
+    func saveContext()
+    {
+        try? viewContext.save()
+    }
+    
+    static let shared = DataController(modelName: "VirtualTourist")
 }
 
 extension DataController
 {
     func autoSaveViewContext(interval: TimeInterval = 30)
     {
-        guard interval > 0 else {
+        guard interval > 0 else
+        {
             print("cannot set negative autosave interval!")
             return
         }

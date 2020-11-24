@@ -35,9 +35,8 @@ extension PhotoAlbumVC : UICollectionViewDelegate, UICollectionViewDataSource
 
         //MARK: delete image from CoreData
         let photo = fetchedResultsController.object(at: indexPath)
-        print(photo.description)
-        AppDelegate.dataController.viewContext.delete(photo)
-        try? AppDelegate.dataController.viewContext.save()
+        DataController.shared.viewContext.delete(photo)
+        DataController.shared.saveContext()
         
         updateFetchResultsController()
     }

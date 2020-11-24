@@ -12,6 +12,7 @@ import CoreData
 class TravelLocationsMapVC: UIViewController
 {
     @IBOutlet weak var mapView: MKMapView!
+    var currendCoordinateForNewPin:CLLocationCoordinate2D = CLLocationCoordinate2D()
     
     var fetchedResultsController:NSFetchedResultsController<Pin>!
     var pins:[Pin] = []
@@ -36,29 +37,41 @@ class TravelLocationsMapVC: UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        AppDelegate.saveViewContext()
+        DataController.shared.saveContext()
     }
     
     
     @objc func mapTapped(tapGesture:UILongPressGestureRecognizer)
     {
-        //convert tap to map coordinates
-        let tappedLoc = tapGesture.location(in: mapView)
-        let pinCoordinates = mapView.convert(tappedLoc, toCoordinateFrom: mapView)
-        
-        //store pin
-        let newPin = Pin(context: AppDelegate.dataController.viewContext)
-        newPin.latitude = pinCoordinates.latitude
-        newPin.longitude = pinCoordinates.longitude
-        
-        //save context
-        AppDelegate.saveViewContext()
-        
-        //update fetchedResultsController
-        updateFetchedResultsController()
-        
-        //add pin to map
-        addPin(newPin)
+        if tapGesture.state == .began
+        {
+            //convert tap to map coordinates
+            let tappedLoc = tapGesture.location(in: mapView)
+            currendCoordinateForNewPin = mapView.convert(tappedLoc, toCoordinateFrom: mapView)
+        }
+        else if tapGesture.state == .changed
+        {
+            //convert tap to map coordinates
+            let tappedLoc = tapGesture.location(in: mapView)
+            currendCoordinateForNewPin = mapView.convert(tappedLoc, toCoordinateFrom: mapView)
+        }
+        else if tapGesture.state == .ended
+        {
+            //store pin
+            let newPin = Pin(context: DataController.shared.viewContext)
+            newPin.latitude = currendCoordinateForNewPin.latitude
+            newPin.longitude = currendCoordinateForNewPin.longitude
+            
+            //save context
+            DataController.shared.saveContext()
+            
+            //update fetchedResultsController
+            updateFetchedResultsController()
+            
+            //add pin to map
+            addPin(newPin)
+        }
+    
     }
     
     //MARK: FETCHED RESULTS CONTROLLER
@@ -68,7 +81,7 @@ class TravelLocationsMapVC: UIViewController
         let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
         
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: AppDelegate.dataController.viewContext, sectionNameKeyPath: nil, cacheName: "pins")
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: DataController.shared.viewContext, sectionNameKeyPath: nil, cacheName: "pins")
         
         updateFetchedResultsController()
     }

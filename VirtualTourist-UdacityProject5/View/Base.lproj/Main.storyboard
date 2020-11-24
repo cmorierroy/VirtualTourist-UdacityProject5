@@ -122,7 +122,6 @@
                         <viewLayoutGuide key="safeArea" id="InK-GZ-ejG"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="Q9b-zR-ZT0" firstAttribute="centerX" secondItem="InK-GZ-ejG" secondAttribute="centerX" id="3mT-hC-L63"/>
                             <constraint firstItem="WsH-ec-vXY" firstAttribute="leading" secondItem="InK-GZ-ejG" secondAttribute="leading" id="71F-lV-rjX"/>
                             <constraint firstItem="vPW-xb-h9d" firstAttribute="leading" secondItem="InK-GZ-ejG" secondAttribute="leading" id="8b2-dW-BqF"/>
                             <constraint firstItem="Q9b-zR-ZT0" firstAttribute="top" secondItem="vPW-xb-h9d" secondAttribute="bottom" id="HgL-dx-CKK"/>

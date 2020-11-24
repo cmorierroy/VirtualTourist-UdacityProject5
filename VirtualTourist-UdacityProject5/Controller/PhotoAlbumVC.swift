@@ -138,12 +138,12 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
                 {
                     self.collectionView.reloadData()
                     //create coredata photo
-                    let newPhoto = Photo(context: AppDelegate.dataController.viewContext)
+                    let newPhoto = Photo(context: DataController.shared.viewContext)
                     newPhoto.image = image.pngData()
                     newPhoto.pin = self.pin
                     
                     //save context
-                    AppDelegate.saveViewContext()
+                    DataController.shared.saveContext()
                     
                     //update fetchResultsController
                     self.updateFetchResultsController()
@@ -219,8 +219,8 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
         {
             collectionView.deleteItems(at:[IndexPath(item: 0, section: 0)])
             let photo = fetchedResultsController.object(at: IndexPath(item: 0, section: 0))
-            AppDelegate.dataController.viewContext.delete(photo)
-            AppDelegate.saveViewContext()
+            DataController.shared.viewContext.delete(photo)
+            DataController.shared.saveContext()
             updateFetchResultsController()
         }
 
@@ -248,7 +248,7 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = []
         
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: AppDelegate.dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: DataController.shared.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         
         fetchedResultsController.delegate = self
         updateFetchResultsController()

@@ -58,7 +58,6 @@ class FlickrClient
                         
             let decoder = JSONDecoder()
             do {
-                print(data)
                 let responseObject = try decoder.decode(ResponseType.self, from: data)
                 DispatchQueue.main.async
                 {
