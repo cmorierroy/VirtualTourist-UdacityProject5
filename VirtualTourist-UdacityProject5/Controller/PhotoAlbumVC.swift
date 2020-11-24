@@ -11,22 +11,56 @@ import CoreData
 
 class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
 {
-    
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var collectionView: UICollectionView!
-    @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     @IBOutlet weak var newCollectionButton: UIButton!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var fetchedResultsController:NSFetchedResultsController<Photo>!
     var pin:Pin!
     var images:[UIImage] = []
     var region:MKCoordinateRegion = MKCoordinateRegion()
-    var picturesStored:Bool = false
+    let collectionViewInsets = UIEdgeInsets(top: 3.0,
+                                               left: 3.0,
+                                               bottom: 3.0,
+                                               right: 3.0)
+    let cellsPerRow: CGFloat = 3
     
+    @IBAction func backButtonPressed(_ sender: Any)
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    //MARK: IB ACTIONS
+    @IBAction func newCollectionTapped(_ sender: Any)
+    {
+        //start activity indicator
+        activityIndicator.startAnimating()
+        
+        pin.page = pin.page+1
+        
+        if(pin.page == pin.maxPage)
+        {
+            pin.page = 1
+        }
+        
+        //clear all previous photos
+        DispatchQueue.main.async
+        {
+            self.deletePhotos()
+        }
+        
+        //get new collection
+        let q = DispatchQueue.global(qos: .userInitiated)
+        q.async { () -> Void in
+            FlickrClient.photosForLocation(lat: self.pin.latitude, lon: self.pin.longitude, page: Int(self.pin.page), completion: self.handlePhotosForLocation(result:error:))
+        }
+    }
+    
+    //MARK: LIFECYCLE FUNCTIONS
     override func viewDidLoad()
     {
         super.viewDidLoad()
-
         // Do any additional setup after loading the view.
     }
     
@@ -35,43 +69,54 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
         super.viewWillAppear(animated)
         
         setupMap()
-        setupCollectionView()
         setupFetchedResultsController()
         setupPictures()
     }
     
-    @IBAction func backButtonPressed(_ sender: Any)
-    {
-        dismiss(animated: true, completion: nil)
-    }
     
+    
+    //MARK: API CALL HANDLERS
     func handlePhotosForLocation(result:ImageCollection?,error:Error?)
     {
         if error != nil
         {
             displayAlert(title: "Error", message: error?.localizedDescription ?? "")
+            DispatchQueue.main.async
+            {
+                self.activityIndicator.stopAnimating()
+            }
         }
         else
         {
             if let imageCollection = result
             {
                 //if there are no pictures
-                if(Int(imageCollection.total) == 0)
+                DispatchQueue.main.async
                 {
-                    collectionView.isHidden = true
-                    newCollectionButton.isHidden = true
-                }
-                else
-                {
-                    collectionView.isHidden = false
-                    newCollectionButton.isHidden = false
-                }
-                
-                for image in imageCollection.photo
-                {
-                    FlickrClient.downloadPhoto(image: image, completion: handleDownloadPhoto(image:error:))
+                    if(Int(imageCollection.total) == 0)
+                    {
+                        self.collectionView.isHidden = true
+                        self.newCollectionButton.isHidden = true
+                    }
+                    else
+                    {
+                        self.pin.maxPage = Int32(imageCollection.pages)
+                        self.collectionView.isHidden = false
+                        self.newCollectionButton.isHidden = false
+                        
+                        let q = DispatchQueue.global(qos: .userInitiated)
+                        
+                        for image in imageCollection.photo
+                        {
+                            q.sync
+                            { () -> Void in
+                                FlickrClient.downloadPhoto(image: image, completion: self.handleDownloadPhoto(image:error:))
+                            }
+                        }
+                    }
                 }
             }
+            
         }
     }
     
@@ -89,16 +134,28 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
                 images.append(image)
                 
                 //reload collection view
-                self.collectionView.reloadData()
-                
-                //save image into photo context
-                let newPhoto = Photo(context: AppDelegate.dataController.viewContext)
-                newPhoto.image = image.pngData()
-                newPhoto.pin = pin
-                try? AppDelegate.dataController.viewContext.save()
+                DispatchQueue.main.async
+                {
+                    self.collectionView.reloadData()
+                    //create coredata photo
+                    let newPhoto = Photo(context: AppDelegate.dataController.viewContext)
+                    newPhoto.image = image.pngData()
+                    newPhoto.pin = self.pin
+                    
+                    //save context
+                    AppDelegate.saveViewContext()
+                    
+                    //update fetchResultsController
+                    self.updateFetchResultsController()
+                }
             }
         }
+        DispatchQueue.main.async
+        {
+            self.activityIndicator.stopAnimating()
+        }
     }
+    
     //MARK: HELPER FUNCTIONS
     func setupMap()
     {
@@ -107,66 +164,34 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
         let newPin = MKPointAnnotation()
         newPin.coordinate = region.center
         mapView.addAnnotation(newPin)
-    }
-    
-    func setupCollectionView()
-    {
-        //Set collection cell dimensions/spacing
-        let space:CGFloat = 2.0
-        let dimension = 10.0 //(collectionView.frame.size.width - (4 * space)) / 3.0
-                
-        flowLayout.minimumInteritemSpacing = space
-        flowLayout.minimumLineSpacing = space
-        flowLayout.itemSize = CGSize(width: dimension, height: dimension)
-    }
-    
-    func displayAlert(title: String, message: String)
-    {
-        let alertVC = UIAlertController(title:title,message: message,preferredStyle: .alert)
-        alertVC.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        showDetailViewController(alertVC, sender: nil)
-    }
-    
-    fileprivate func setupFetchedResultsController()
-    {
-        let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
-        let predicate = NSPredicate(format: "pin == %@", pin)
-
-        fetchRequest.predicate = predicate
-        fetchRequest.sortDescriptors = []
-        
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: AppDelegate.dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        
-        fetchedResultsController.delegate = self
-        
-        do
-        {
-            try fetchedResultsController.performFetch()
-        }
-        catch
-        {
-            fatalError("The fetch could not be performed: \(error.localizedDescription)")
-        }
+        mapView.isScrollEnabled = false
+        mapView.isZoomEnabled = false
     }
     
     func setupPictures()
     {
-        if let data = fetchedResultsController.fetchedObjects
+        //if this pin was never fetched for
+        if (!pin.loaded)
         {
-            if data.count == 0
-            {
-                //NO PICTURES STORED, INITIATE API CALL
-                picturesStored = false
-                collectionView.isHidden = false
-                newCollectionButton.isHidden = false
-                
-                //setup place holders
-                
-                print("NO PICS YET")
-                
-                FlickrClient.photosForLocation(lat: pin.latitude, lon: pin.longitude, completion: handlePhotosForLocation(result:error:))
+            //NO PICTURES STORED, INITIATE API CALL
+            collectionView.isHidden = false
+            newCollectionButton.isHidden = false
+            activityIndicator.startAnimating()
+            
+            let q = DispatchQueue.global(qos: .userInitiated)
+            
+            q.sync
+            { ()->Void in
+                FlickrClient.photosForLocation(lat: self.pin.latitude, lon: self.pin.longitude, page: Int(self.pin.page), completion: self.handlePhotosForLocation(result:error:))
             }
-            else
+            
+            pin.loaded = true
+        }
+        else
+        {
+            updateFetchResultsController()
+            
+            if let data = fetchedResultsController.fetchedObjects
             {
                 collectionView.isHidden = false
                 newCollectionButton.isHidden = false
@@ -184,8 +209,60 @@ class PhotoAlbumVC: UIViewController, NSFetchedResultsControllerDelegate
                 }
                 //update collection view
                 self.collectionView.reloadData()
-                print("PICS")
             }
+        }
+    }
+    
+    func deletePhotos()
+    {
+        for _ in 0..<images.count
+        {
+            collectionView.deleteItems(at:[IndexPath(item: 0, section: 0)])
+            let photo = fetchedResultsController.object(at: IndexPath(item: 0, section: 0))
+            AppDelegate.dataController.viewContext.delete(photo)
+            AppDelegate.saveViewContext()
+            updateFetchResultsController()
+        }
+
+        //clear vc copy of images
+        images = []
+    }
+    
+    //MARK: ERROR HANDLING
+    func displayAlert(title: String, message: String)
+    {
+        DispatchQueue.main.async
+        {
+            let alertVC = UIAlertController(title:title,message: message,preferredStyle: .alert)
+            alertVC.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.showDetailViewController(alertVC, sender: nil)
+        }
+    }
+    
+    //MARK: FETCHED RESULTS CONTROLLER
+    fileprivate func setupFetchedResultsController()
+    {
+        let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
+        let predicate = NSPredicate(format: "pin == %@", pin)
+
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = []
+        
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: AppDelegate.dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        
+        fetchedResultsController.delegate = self
+        updateFetchResultsController()
+    }
+    
+    func updateFetchResultsController()
+    {
+        do
+        {
+            try fetchedResultsController.performFetch()
+        }
+        catch
+        {
+            fatalError("The fetch could not be performed: \(error.localizedDescription)")
         }
     }
 }

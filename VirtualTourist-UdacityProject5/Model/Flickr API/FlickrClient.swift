@@ -21,13 +21,13 @@ class FlickrClient
     {
         static let base = "https://www.flickr.com/services/rest"
         
-        case getPhotosForLocation(Double,Double)
+        case getPhotosForLocation(Double,Double,Int)
         case downloadPhoto(String,String,String)
         
         var stringValue: String
         {
             switch self {
-            case .getPhotosForLocation(let lat, let lon): return Endpoints.base +  "?method=flickr.photos.search&api_key=\(Auth.key)&lat=\(lat)&lon=\(lon)&per_page=12&page=1&format=json&nojsoncallback=1"
+            case .getPhotosForLocation(let lat, let lon, let page): return Endpoints.base +  "?method=flickr.photos.search&api_key=\(Auth.key)&lat=\(lat)&lon=\(lon)&per_page=12&page=\(page)&format=json&nojsoncallback=1"
             case .downloadPhoto(let serverId, let id, let secret): return "https://live.staticflickr.com/\(serverId)/\(id)_\(secret).jpg"
             }
         }
@@ -79,9 +79,9 @@ class FlickrClient
     }
     
     //MARK: Get Requests
-    class func photosForLocation(lat: Double, lon: Double, completion: @escaping (ImageCollection?, Error?) -> Void)
+    class func photosForLocation(lat: Double, lon: Double, page:Int, completion: @escaping (ImageCollection?, Error?) -> Void)
     {
-        _ = taskForGETRequest(url: Endpoints.getPhotosForLocation(lat,lon).url, response: PhotosForLocationResponse.self) { (response, error) in
+        _ = taskForGETRequest(url: Endpoints.getPhotosForLocation(lat,lon,page).url, response: PhotosForLocationResponse.self) { (response, error) in
             if let response = response
             {
                 completion(response.photos, nil)

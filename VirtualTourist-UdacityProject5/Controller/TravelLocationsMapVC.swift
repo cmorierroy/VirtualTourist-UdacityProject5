@@ -16,7 +16,7 @@ class TravelLocationsMapVC: UIViewController
     var fetchedResultsController:NSFetchedResultsController<Pin>!
     var pins:[Pin] = []
     
-    // MARK: LifeCycle
+    // MARK: LIFECYCLE
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -30,13 +30,13 @@ class TravelLocationsMapVC: UIViewController
         setupFetchedResultsController();
            
         //setup pins on map
-        loadPins()
+        loadPins()        
     }
     
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
-        try? AppDelegate.dataController.viewContext.save()
+        AppDelegate.saveViewContext()
     }
     
     
@@ -50,14 +50,18 @@ class TravelLocationsMapVC: UIViewController
         let newPin = Pin(context: AppDelegate.dataController.viewContext)
         newPin.latitude = pinCoordinates.latitude
         newPin.longitude = pinCoordinates.longitude
-        try? AppDelegate.dataController.viewContext.save()
         
+        //save context
+        AppDelegate.saveViewContext()
+        
+        //update fetchedResultsController
         updateFetchedResultsController()
         
         //add pin to map
         addPin(newPin)
     }
     
+    //MARK: FETCHED RESULTS CONTROLLER
     fileprivate func setupFetchedResultsController()
     {
         let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -80,8 +84,6 @@ class TravelLocationsMapVC: UIViewController
             {
                 self.pins = pins
             }
-            
-            print("Updated Fetched Results Controller")
         }
         catch
         {
@@ -89,6 +91,7 @@ class TravelLocationsMapVC: UIViewController
         }
     }
     
+    //MARK: HELPER FUNCTIONS
     func addPin(_ pin:Pin)
     {
         let newPin = MKPointAnnotation()
@@ -128,6 +131,7 @@ class TravelLocationsMapVC: UIViewController
         
     }
     
+    //MARK: PREPARE FOR SEGUE
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         //set map view on PhotoAlbumVC to same region/center as current map
@@ -136,7 +140,7 @@ class TravelLocationsMapVC: UIViewController
             if let pinCoord = sender as? CLLocationCoordinate2D
             {
                 //give the photo album view controller a region centered on the tapped pin
-                let region = MKCoordinateRegion(center: pinCoord, latitudinalMeters: 4000, longitudinalMeters: 4000)
+                let region = MKCoordinateRegion(center: pinCoord, latitudinalMeters: 3000, longitudinalMeters: 3000)
                 vc.region = region
                 
                 //get the core data pin object that corresponds to tapped pin (needed to access attached pictures)
